@@ -29,10 +29,11 @@ cnt, env_nan = delNaN(env, ['평균기온(°C)', '평균최저기온(°C)', '평
 
 li_env = []
 
-for i in range(len(env_nan['지점명'])):
-    for j in range(len(env_nan['지점명'])):
+for i in range(len(env_nan['일시'])):
+    for j in range(len(env_nan['일시'])):
         if i == 0:
             li_env.append([env_nan['일시'][j], env_nan['평균기온(°C)'][j], env_nan['평균최저기온(°C)'][j], env_nan['평균최고기온(°C)'][j]])
+            continue
         else:
             li_env[j][1] += env_nan['평균기온(°C)'][j]
             li_env[j][2] += env_nan['평균최저기온(°C)'][j]
