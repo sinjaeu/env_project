@@ -1,7 +1,6 @@
 import pandas as pd
 
-env = pd.read_csv('OBS_ASOS_ANL_20240508163403.csv')
-print(env.head())
+env = pd.read_csv('OBS_ASOS_ANL_20240508163403_date.csv')
 
 def delNaN(data, *idx, start=0):
     li_idx = []
@@ -25,23 +24,30 @@ def delNaN(data, *idx, start=0):
 
     return cnt, data
 
-cnt, env_nan = delNaN(env, ['평균기온(°C)', '평균최저기온(°C)', '평균최고기온(°C)'], start=1)
+li_cnt, env_nan = delNaN(env, ['평균기온(°C)', '평균최저기온(°C)', '평균최고기온(°C)'], start=1)
 
 li_env = []
-
-for i in range(len(env_nan['일시'])):
-    for j in range(len(env_nan['일시'])):
-        if i == 0:
-            li_env.append([env_nan['일시'][j], env_nan['평균기온(°C)'][j], env_nan['평균최저기온(°C)'][j], env_nan['평균최고기온(°C)'][j]])
-            continue
-        else:
-            li_env[j][1] += env_nan['평균기온(°C)'][j]
-            li_env[j][2] += env_nan['평균최저기온(°C)'][j]
-            li_env[j][3] += env_nan['평균최고기온(°C)'][j]
+date = 0
+cnt = -1
+li_cnt = []
+li_cnt_n = 1
+for i in range(len(env_nan)):
+    if env_nan['일시'][i] != date:
+        li_env.append([env_nan['일시'][i], env_nan['평균기온(°C)'][i], env_nan['평균최저기온(°C)'][i], env_nan['평균최고기온(°C)'][i]])
+        date = env_nan['일시'][i]
+        cnt+=1
+        li_cnt.append(li_cnt_n)
+        li_cnt_n = 1
+    else:
+        li_env[cnt][1] += env_nan['평균기온(°C)'][i]
+        li_env[cnt][2] += env_nan['평균최저기온(°C)'][i]
+        li_env[cnt][3] += env_nan['평균최고기온(°C)'][i]
+        li_cnt_n += 1
+li_cnt.append(li_cnt_n)
+del li_cnt[0]
 
 for i in range(len(li_env)):
-    for j in range(1, len(li_env)):
-        li_env[i][j] /= cnt[j-1]
-        li_env[i][j] = round(li_env[i][j], 2)
+    for j in range(1, len(li_env[i])):
+        li_env[i][j] = round(li_env[i][j]/li_cnt[i], 2)
 
 print(li_env)
