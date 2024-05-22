@@ -10,6 +10,11 @@ import matplotlib.pyplot as plt
 
 
 env = pd.read_csv('OBS_ASOS_ANL_20240508163403_date.csv')
+# 소수점 이하 자릿수 설정
+np.set_printoptions(precision=3)
+
+# 지수 표기법 사용 안함
+np.set_printoptions(suppress=True)
 
 def delNaN(data, *idx, start=0):
     li_idx = []
@@ -157,35 +162,26 @@ df_GHGs = [pd.DataFrame(data, columns=['연도', '구분', '배출량']) for dat
 df_ghgs = [pd.DataFrame(data, columns=['연도', '구분', '배출량']) for data in li_ghgs]
 
 # 환경 데이터와 각 오염물질 데이터 간의 상관관계 분석
+correlation_matrix_pollutant = []
 for df_pollutant in df_pollutants:
     # 오염물질 데이터프레임과 환경 데이터프레임을 합침
     df_merged = pd.merge(df_pollutant, df_env, on='연도')
     # 상관 계수 계산
-    correlation_matrix = df_merged[['배출량', '변화율', '평균기온', '평균최저기온', '평균최고기온']].corr()
-    print(f"오염물질: {df_pollutant['구분'][0]}")
-    print(correlation_matrix)
+    correlation_matrix_pollutant .append(df_merged[['배출량', '변화율', '평균기온', '평균최저기온', '평균최고기온']].corr())
 
-print('--------------------------------------------------------------------')
-
+correlation_matrix_GHGs = []
 for df_GHG in df_GHGs:
     # 오염물질 데이터프레임과 환경 데이터프레임을 합침
     df_merged = pd.merge(df_GHG, df_env, on='연도')
     # 상관 계수 계산
-    correlation_matrix = df_merged[['배출량', '평균기온', '평균최저기온', '평균최고기온']].corr()
-    print(f"온실가스: {df_GHG['구분'][0]}")
-    print(correlation_matrix)
+    correlation_matrix_GHGs.append(df_merged[['배출량', '평균기온', '평균최저기온', '평균최고기온']].corr())
 
-print('--------------------------------------------------------------------')
-
+correlation_matrix_ghgs = []
 for df_ghg in df_ghgs:
     # 오염물질 데이터프레임과 환경 데이터프레임을 합침
     df_merged = pd.merge(df_ghg, df_env, on='연도')
     # 상관 계수 계산
-    correlation_matrix = df_merged[['배출량', '평균기온', '평균최저기온', '평균최고기온']].corr()
-    print(f"반응가스: {df_ghg['구분'][0]}")
-    print(correlation_matrix)
-
-print('--------------------------------------------------------------------')
+    correlation_matrix_ghgs.append(df_merged[['배출량', '평균기온', '평균최저기온', '평균최고기온']].corr())
 
 # for df in df_GHGs:
 #     X = df
@@ -263,6 +259,21 @@ for cnt in range(len(ghg_names)):
     # 예측 결과 출력
     print(f"예측 결과 {cnt + 1}:", predictions_rounded)
     predict_data.append(predictions_rounded)
+    print('----------------------------------------')
+# print(len(predict_data[1]))
+predict_avg = []
+for i in range(len(predict_data[0])):
+    sum1 = 0
+    sum2 = 0
+    sum3 = 0
+    for j in range(len(predict_data)):
+        sum1 += predict_data[j][i][1] * correlation_matrix_GHGs[j]['배출량']['평균기온']
+        sum2 += predict_data[j][i][2] * correlation_matrix_GHGs[j]['배출량']['평균최저기온']
+        sum3 += predict_data[j][i][3] * correlation_matrix_GHGs[j]['배출량']['평균최고기온']
+    predict_avg.append([2023 + i, round(sum1/len(predict_data[j]), 3), round(sum2/len(predict_data[j]), 3), round(sum3/len(predict_data[j]), 3)])
 
-print('------------------------------------')
-print(df_env.tail())
+for i in predict_avg:
+    print(i)
+
+# for i in correlation_matrix_GHGs:
+#     print(i['배출량']['평균기온'])
