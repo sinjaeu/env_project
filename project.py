@@ -199,7 +199,7 @@ for df in df_GHGs:
     X = df.drop(columns=['구분'])
     
     # 타겟 변수 y 준비 (예: '기온' 열)
-    y = df_env[94:118:]
+    y = df_env[94:len(df_env)-1:]
     
     # 학습 데이터와 테스트 데이터로 분리
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=892) #0.2 892
@@ -216,8 +216,8 @@ for df in df_GHGs:
     scores.append(score)
 
 # 각 모델의 성능 점수 출력
-for i, score in enumerate(scores):
-    print(f"Dataset {i+1} model score: {score}")
+# for i, score in enumerate(scores):
+#     print(f"Dataset {i+1} model score: {score}")
 
 # 각 모델을 파일로 저장
 for i, model in enumerate(models):
@@ -257,9 +257,9 @@ for cnt in range(len(ghg_names)):
     predictions_rounded = np.round(predictions, 3)
 
     # 예측 결과 출력
-    print(f"예측 결과 {cnt + 1}:", predictions_rounded)
+    # print(f"예측 결과 {cnt + 1}:", predictions_rounded)
+    # print('----------------------------------------')
     predict_data.append(predictions_rounded)
-    print('----------------------------------------')
 # print(len(predict_data[1]))
 predict_avg = []
 for i in range(len(predict_data[0])):
@@ -267,13 +267,43 @@ for i in range(len(predict_data[0])):
     sum2 = 0
     sum3 = 0
     for j in range(len(predict_data)):
-        sum1 += predict_data[j][i][1] * correlation_matrix_GHGs[j]['배출량']['평균기온']
-        sum2 += predict_data[j][i][2] * correlation_matrix_GHGs[j]['배출량']['평균최저기온']
-        sum3 += predict_data[j][i][3] * correlation_matrix_GHGs[j]['배출량']['평균최고기온']
-    predict_avg.append([2023 + i, round(sum1/len(predict_data[j]), 3), round(sum2/len(predict_data[j]), 3), round(sum3/len(predict_data[j]), 3)])
+        # sum1 += predict_data[j][i][1] * correlation_matrix_GHGs[j]['배출량']['평균기온']
+        # sum2 += predict_data[j][i][2] * correlation_matrix_GHGs[j]['배출량']['평균최저기온']
+        # sum3 += predict_data[j][i][3] * correlation_matrix_GHGs[j]['배출량']['평균최고기온']
+        sum1 += predict_data[j][i][1]
+        sum2 += predict_data[j][i][2]
+        sum3 += predict_data[j][i][3]
+    predict_avg.append([2023 + i, round(sum1/len(predict_data), 3), round(sum2/len(predict_data), 3), round(sum3/len(predict_data), 3)])
 
 for i in predict_avg:
     print(i)
 
 # for i in correlation_matrix_GHGs:
 #     print(i['배출량']['평균기온'])
+
+
+# 데이터를 분리
+years = [int(item[0]) for item in predict_avg]
+avg_temps = [item[1] for item in predict_avg]
+min_temps = [item[2] for item in predict_avg]
+max_temps = [item[3] for item in predict_avg]
+
+# 5년 간격의 연도 리스트 생성
+years_ticks = list(i for i in years[::5])
+years_ticks.append(years[-1])
+
+# 시각화
+plt.figure(figsize=(10, 6))
+
+plt.plot(years, avg_temps, label='Average Temperature', marker='o')
+plt.plot(years, min_temps, label='Average Minimum Temperature', marker='o')
+plt.plot(years, max_temps, label='Average Maximum Temperature', marker='o')
+
+plt.xlabel('Year')
+plt.ylabel('Temperature (°C)')
+plt.title('Predicted Temperature Changes Over Time')
+plt.legend()
+plt.grid(True)
+plt.xticks(years_ticks)
+
+plt.show()
